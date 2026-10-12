@@ -1,1017 +1,1071 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Simulador de Entrenamiento Pokémon — Reporte</title>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8">
+  <title>Reporte: Simulador de Entrenamiento Pokémon</title>
   <style>
-    :root {
-      --primary: #FFD700;
-      --accent:  #E3350D;
-      --blue:    #3B4CCA;
-      --dark:    #1a1a2e;
-      --darker:  #0f0f1e;
-      --surface: #16213e;
-      --card:    #1e2a4a;
-      --text:    #e0e6f0;
-      --muted:   #8899bb;
-      --green:   #4ade80;
-      --cyan:    #22d3ee;
-      --purple:  #a78bfa;
-      --orange:  #fb923c;
+    @page {
+      size: letter;
+      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+      @bottom-right {
+        content: counter(page);
+      }
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background: var(--darker);
-      color: var(--text);
-      line-height: 1.65;
-      font-size: 13px;
-    }
-
-    /* ── PAGE BREAKS ───────────────────────────────── */
-    @media print {
-      body { background: #fff; color: #111; font-size: 11px; }
-      .cover { background: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .no-break { page-break-inside: avoid; }
-      .page-break { page-break-before: always; }
-      pre, code { background: #f4f4f8 !important; color: #1a1a2e !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .terminal { background: #0d1117 !important; color: #c9d1d9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .section-header { background: #1a1a2e !important; color: #FFD700 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .keyword { color: #569cd6 !important; }
-      .string  { color: #ce9178 !important; }
-      .comment { color: #6a9955 !important; }
-      .decorator { color: #dcdcaa !important; }
-      .builtin   { color: #4ec9b0 !important; }
-      .number    { color: #b5cea8 !important; }
-    }
-
-    /* ── COVER PAGE ────────────────────────────────── */
-    .cover {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0f0f1e 0%, #1a1a2e 40%, #16213e 70%, #0d3b66 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 40px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cover::before {
-      content: '';
-      position: absolute;
-      width: 600px; height: 600px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255,215,0,.12) 0%, transparent 70%);
-      top: -150px; right: -150px;
-    }
-    .cover::after {
-      content: '';
-      position: absolute;
-      width: 400px; height: 400px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(227,53,13,.1) 0%, transparent 70%);
-      bottom: -100px; left: -100px;
-    }
-
-    .pokeball-icon {
-      font-size: 80px;
-      margin-bottom: 20px;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
-
-    .cover h1 {
-      font-size: 38px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #FFD700, #FFA500);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 10px;
-      letter-spacing: -1px;
-    }
-    .cover .subtitle {
-      font-size: 16px;
-      color: #8899bb;
-      margin-bottom: 40px;
-      font-weight: 300;
-    }
-    .cover .meta-card {
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,215,0,.2);
-      border-radius: 16px;
-      padding: 28px 40px;
-      backdrop-filter: blur(10px);
-      max-width: 520px;
-      width: 100%;
-    }
-    .cover .meta-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,.07);
-      font-size: 13px;
-    }
-    .cover .meta-row:last-child { border-bottom: none; }
-    .cover .meta-label { color: var(--muted); font-weight: 500; }
-    .cover .meta-value { color: var(--primary); font-weight: 600; }
-
-    .cover .badges {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-top: 30px;
-    }
-    .badge {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .5px;
-    }
-    .badge-gold  { background: rgba(255,215,0,.15); border: 1px solid rgba(255,215,0,.4); color: #FFD700; }
-    .badge-red   { background: rgba(227,53,13,.15); border: 1px solid rgba(227,53,13,.4); color: #ff6b4a; }
-    .badge-blue  { background: rgba(59,76,202,.25); border: 1px solid rgba(59,76,202,.5); color: #7b93ff; }
-
-    /* ── CONTENT ────────────────────────────────────── */
-    .container { max-width: 960px; margin: 0 auto; padding: 50px 30px; }
-
-    .section-header {
-      background: linear-gradient(90deg, var(--blue) 0%, #1a3a7a 100%);
-      border-left: 4px solid var(--primary);
-      padding: 14px 24px;
-      border-radius: 0 10px 10px 0;
-      margin: 40px 0 20px;
-      font-weight: 700;
-      font-size: 17px;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* ── CONCEPT TABLE ──────────────────────────────── */
-    .concept-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-bottom: 30px;
-    }
-    .concept-card {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,.08);
-      border-radius: 12px;
-      padding: 16px 18px;
-      border-top: 3px solid var(--primary);
-    }
-    .concept-card h4 {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: .8px;
-    }
-    .concept-card p {
-      font-size: 12px;
-      color: var(--muted);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #212529;
+      background-color: #ffffff;
       line-height: 1.5;
+      font-size: 11pt;
     }
 
-    /* ── STRUCTURE TREE ─────────────────────────────── */
-    .tree {
-      background: var(--card);
-      border-radius: 12px;
-      padding: 20px 24px;
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-      border: 1px solid rgba(255,255,255,.07);
-      margin-bottom: 30px;
+    /* Estilos de página y saltos */
+    .page {
+      page-break-after: always;
     }
-    .tree .folder { color: var(--primary); font-weight: 600; }
-    .tree .file   { color: var(--cyan); }
-    .tree .desc   { color: var(--muted); font-size: 11px; }
 
-    /* ── CODE BLOCKS ────────────────────────────────── */
-    .code-file-header {
-      background: linear-gradient(90deg, #0d1117, #161b22);
-      border-radius: 10px 10px 0 0;
-      padding: 10px 18px;
+    .no-break {
+      page-break-inside: avoid;
+    }
+
+    /* Encabezado Académico / Portada básica */
+    .header-box {
+      border-bottom: 2px solid #2b6cb0;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+    }
+
+    .header-box h1 {
+      font-size: 18pt;
+      color: #1a365d;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .header-box h2 {
+      font-size: 13pt;
+      color: #4a5568;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 20px;
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 10pt;
+    }
+
+    .meta-item strong {
+      color: #2d3748;
+    }
+
+    /* Secciones */
+    h2.section-title {
+      font-size: 13pt;
+      color: #1a365d;
+      border-bottom: 1px solid #cbd5e0;
+      padding-bottom: 4px;
+      margin-top: 24px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       gap: 8px;
-      border: 1px solid rgba(255,255,255,.1);
+    }
+
+    h3.subsection-title {
+      font-size: 11pt;
+      color: #2d3748;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    p {
+      margin-bottom: 10px;
+      font-size: 10pt;
+      color: #333;
+    }
+
+    /* Enlace GitHub */
+    .github-box {
+      background: #ebf8ff;
+      border: 1px solid #bee3f8;
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+
+    .github-box a {
+      color: #2b6cb0;
+      font-weight: 600;
+      font-size: 11pt;
+      text-decoration: underline;
+      word-break: break-all;
+    }
+
+    /* Consola / Capturas de Ejecución */
+    .console-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid #3182ce;
+      border-radius: 4px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 8.5pt;
+      line-height: 1.45;
+      color: #0f172a;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .console-header {
+      background: #e2e8f0;
+      color: #334155;
+      font-weight: 600;
+      font-size: 9pt;
+      padding: 4px 10px;
+      border-radius: 4px 4px 0 0;
+      border: 1px solid #cbd5e1;
       border-bottom: none;
-    }
-    .dot { width: 12px; height: 12px; border-radius: 50%; }
-    .dot-r { background: #ff5f57; }
-    .dot-y { background: #ffbd2e; }
-    .dot-g { background: #28ca41; }
-    .file-name { font-family: 'Fira Code', monospace; font-size: 12px; color: var(--muted); margin-left: 8px; }
-
-    pre {
-      background: #0d1117;
-      border: 1px solid rgba(255,255,255,.1);
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      padding: 20px;
-      overflow-x: auto;
-      font-family: 'Fira Code', monospace;
-      font-size: 11.5px;
-      line-height: 1.7;
-      counter-reset: line;
-      margin-bottom: 28px;
-    }
-    pre .line {
-      display: block;
-      counter-increment: line;
-    }
-    pre .line::before {
-      content: counter(line);
-      display: inline-block;
-      width: 32px;
-      color: #484f58;
-      user-select: none;
-      text-align: right;
-      padding-right: 16px;
-      font-size: 10px;
+      margin-top: 10px;
     }
 
-    /* Syntax highlight colours */
-    .keyword  { color: #ff79c6; }
-    .kw2      { color: #bd93f9; }
-    .string   { color: #f1fa8c; }
-    .comment  { color: #6272a4; font-style: italic; }
-    .decorator{ color: #50fa7b; }
-    .builtin  { color: #8be9fd; }
-    .number   { color: #bd93f9; }
-    .self     { color: #ffb86c; }
-    .func     { color: #50fa7b; }
-    .docstr   { color: #6272a4; font-style: italic; }
-    .cls-name { color: #8be9fd; font-weight: 600; }
-
-    /* ── TERMINAL / SCREENSHOTS ─────────────────────── */
-    .terminal-wrapper { margin-bottom: 30px; }
-    .terminal-bar {
-      background: #2d2d2d;
-      border-radius: 10px 10px 0 0;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      gap: 7px;
+    .console-header + .console-box {
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
-    .terminal {
-      background: #0d1117;
-      border: 1px solid #30363d;
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      padding: 20px;
-      font-family: 'Fira Code', monospace;
-      font-size: 11.5px;
-      line-height: 1.8;
-      color: #c9d1d9;
-      white-space: pre;
-      overflow-x: auto;
-    }
-    .t-green  { color: #4ade80; }
-    .t-yellow { color: #FFD700; }
-    .t-cyan   { color: #22d3ee; }
-    .t-red    { color: #ff6b6b; }
-    .t-purple { color: #c084fc; }
-    .t-orange { color: #fb923c; }
-    .t-blue   { color: #60a5fa; }
-    .t-dim    { color: #484f58; }
-    .t-bold   { font-weight: 600; }
-    .t-input  { color: #FFD700; background: rgba(255,215,0,.07); border-radius: 3px; padding: 0 3px; }
 
-    /* ── SUMMARY TABLE ──────────────────────────────── */
-    table {
+    /* Tablas de conceptos */
+    table.conceptos-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 30px;
-      font-size: 12px;
+      margin-bottom: 18px;
+      font-size: 9pt;
     }
-    th {
-      background: var(--blue);
-      color: var(--primary);
-      padding: 10px 14px;
+
+    table.conceptos-table th, table.conceptos-table td {
+      border: 1px solid #e2e8f0;
+      padding: 6px 10px;
       text-align: left;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: .6px;
     }
-    td {
-      padding: 9px 14px;
-      border-bottom: 1px solid rgba(255,255,255,.05);
-      vertical-align: top;
+
+    table.conceptos-table th {
+      background: #edf2f7;
+      color: #2d3748;
+      font-weight: 600;
     }
-    tr:nth-child(even) td { background: rgba(255,255,255,.025); }
-    tr:hover td { background: rgba(255,215,0,.04); }
-    .check { color: var(--green); font-weight: 700; }
-    .code-inline {
-      font-family: 'Fira Code', monospace;
-      background: rgba(255,255,255,.08);
-      padding: 2px 6px;
+
+    /* Código Fuente */
+    pre.code-block {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
       border-radius: 4px;
-      font-size: 11px;
-      color: var(--cyan);
+      padding: 12px;
+      font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Courier New", monospace;
+      font-size: 8pt;
+      line-height: 1.4;
+      color: #212529;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-bottom: 16px;
     }
 
-    /* ── GITHUB SECTION ─────────────────────────────── */
-    .github-card {
-      background: var(--card);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 16px;
-      padding: 24px 28px;
-      margin-bottom: 30px;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    .github-icon { font-size: 48px; flex-shrink: 0; }
-    .github-url {
-      font-family: 'Fira Code', monospace;
-      font-size: 13px;
-      color: var(--cyan);
-      background: rgba(0,0,0,.3);
-      padding: 8px 14px;
-      border-radius: 8px;
-      border: 1px solid rgba(34,211,238,.2);
-      word-break: break-all;
-      display: block;
-      margin-top: 8px;
+    .file-badge {
+      display: inline-block;
+      background: #e2e8f0;
+      color: #2d3748;
+      font-weight: 600;
+      font-size: 8.5pt;
+      padding: 3px 8px;
+      border-radius: 3px;
+      margin-bottom: 6px;
     }
 
-    /* ── FOOTER ─────────────────────────────────────── */
-    .footer {
-      text-align: center;
-      padding: 30px;
-      color: var(--muted);
-      font-size: 11px;
-      border-top: 1px solid rgba(255,255,255,.06);
+    /* Botón flotante para imprimir en navegador */
+    .print-button-container {
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .btn-print {
+      background-color: #3182ce;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 10pt;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    @media print {
+      .print-button-container {
+        display: none;
+      }
+      body {
+        background: transparent;
+      }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════
-     PORTADA
-════════════════════════════════════════════════════════════ -->
-<div class="cover">
-  <div class="pokeball-icon">⚡🎮</div>
-  <h1>Simulador de Entrenamiento Pokémon</h1>
-  <p class="subtitle">Programación Orientada a Objetos · Python</p>
+  <div class="print-button-container">
+    <button class="btn-print" onclick="window.print()">🖨️ Guardar o Imprimir como PDF</button>
+  </div>
 
-  <div class="meta-card">
-    <div class="meta-row">
-      <span class="meta-label">📚 Materia</span>
-      <span class="meta-value">Programación Orientada a Objetos</span>
-    </div>
-    <div class="meta-row">
-      <span class="meta-label">🏫 Institución</span>
-      <span class="meta-value">TecNM — Campus Aguascalientes</span>
-    </div>
-    <div class="meta-row">
-      <span class="meta-label">📅 Fecha</span>
-      <span class="meta-value">Octubre 2026</span>
-    </div>
-    <div class="meta-row">
-      <span class="meta-label">🐍 Lenguaje</span>
-      <span class="meta-value">Python 3.13</span>
-    </div>
-    <div class="meta-row">
-      <span class="meta-label">📦 Archivos</span>
-      <span class="meta-value">pokemon.py · main.py</span>
+  <!-- ENCABEZADO GENERAL / PORTADA BÁSICA -->
+  <div class="header-box">
+    <h1>Reporte de Práctica: Simulador de Entrenamiento Pokémon</h1>
+    <h2>Programación Orientada a Objetos en Python</h2>
+    
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Alumno:</strong> Joaquín García</div>
+      <div class="meta-item"><strong>Materia:</strong> Programación Orientada a Objetos</div>
+      <div class="meta-item"><strong>Lenguaje:</strong> Python 3 (POO)</div>
+      <div class="meta-item"><strong>Fecha:</strong> Octubre 2026</div>
     </div>
   </div>
 
-  <div class="badges">
-    <span class="badge badge-gold">Constructores &amp; Destructores</span>
-    <span class="badge badge-red">Métodos de Clase</span>
-    <span class="badge badge-blue">Sobrecarga con *args</span>
-    <span class="badge badge-gold">Variables Globales / Locales</span>
-    <span class="badge badge-red">Paso por Referencia</span>
-    <span class="badge badge-blue">Ámbito de Variables</span>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════
-     CONTENIDO
-════════════════════════════════════════════════════════════ -->
-<div class="container">
-
-  <!-- ── ÍNDICE DE CONCEPTOS ──────────────────────────────── -->
-  <div class="section-header">📋 Conceptos de POO Implementados</div>
-
-  <div class="concept-grid">
-    <div class="concept-card">
-      <h4>🏗️ Constructor __init__</h4>
-      <p>Inicializa todos los atributos de instancia (nombre, tipo, nivel, ataque, defensa, salud) usando <code style="color:#22d3ee">self</code>. Incrementa el contador de clase y muestra mensaje de captura.</p>
-    </div>
-    <div class="concept-card">
-      <h4>💣 Destructor __del__</h4>
-      <p>Se ejecuta automáticamente al eliminar la última referencia al objeto. Decrementa <code style="color:#22d3ee">Pokemon._total</code> y muestra el mensaje de liberación.</p>
-    </div>
-    <div class="concept-card">
-      <h4>🔄 Sobrecarga con *args</h4>
-      <p><code style="color:#22d3ee">entrenar(*args)</code> acepta 0, 1, 2 ó 3+ argumentos, simulando sobrecarga de métodos: automático, solo ataque, ataque+defensa, o los tres stats.</p>
-    </div>
-    <div class="concept-card">
-      <h4>🏷️ Método de Clase</h4>
-      <p><code style="color:#22d3ee">@classmethod total_pokemons(cls)</code> accede a la variable de clase <code style="color:#22d3ee">_total</code> sin necesitar una instancia. Cuenta Pokémon activos.</p>
-    </div>
-    <div class="concept-card">
-      <h4>🌍 Variables Globales / Locales</h4>
-      <p><code style="color:#22d3ee">pokemons_capturados</code> es global en <em>main.py</em>; variables como <code style="color:#22d3ee">daño</code>, <code style="color:#22d3ee">bonus_ataque</code>, <code style="color:#22d3ee">porcentaje</code> son locales dentro de sus métodos.</p>
-    </div>
-    <div class="concept-card">
-      <h4>↔️ Paso de Parámetros</h4>
-      <p>Tipos primitivos (str, int) se pasan <strong>por valor</strong> en el constructor. El objeto <code style="color:#22d3ee">objetivo</code> en <code style="color:#22d3ee">atacar()</code> se pasa <strong>por referencia</strong>, modificando su salud directamente.</p>
-    </div>
+  <!-- SECCIÓN 1: REPOSITORIO GITHUB -->
+  <h2 class="section-title">1. Enlace al Repositorio en GitHub</h2>
+  <div class="github-box">
+    <p>El código fuente completo y el control de versiones se encuentran disponibles públicamente en el siguiente enlace:</p>
+    <p>🔗 <a href="https://github.com/joaquinrg132-png/pokemon-simulator-poo" target="_blank">https://github.com/joaquinrg132-png/pokemon-simulator-poo</a></p>
+    <p style="margin-top: 8px; font-size: 9pt; color: #4a5568;">
+      <strong>Comando para clonar:</strong> <code>git clone https://github.com/joaquinrg132-png/pokemon-simulator-poo.git</code>
+    </p>
   </div>
 
-  <!-- ── ESTRUCTURA DEL PROYECTO ──────────────────────────── -->
-  <div class="section-header">📁 Estructura del Proyecto</div>
-
-  <div class="tree no-break">
-    <span class="folder">pokemon_simulator/</span><br>
-    &nbsp;&nbsp;&nbsp;│<br>
-    &nbsp;&nbsp;&nbsp;├── <span class="file">main.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">← Menú interactivo, lógica de usuario, variables globales</span><br>
-    &nbsp;&nbsp;&nbsp;└── <span class="folder">clases/</span><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="file">__init__.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">← Inicializador del paquete</span><br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="file">pokemon.py</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="desc">← Clase Pokemon (constructor, destructor, métodos)</span>
-  </div>
-
-  <!-- ── TABLA DE REQUERIMIENTOS ──────────────────────────── -->
-  <div class="section-header">✅ Cumplimiento de Requerimientos</div>
-
-  <table class="no-break">
+  <!-- SECCIÓN 2: CONCEPTOS APLICADOS -->
+  <h2 class="section-title">2. Conceptos de POO Implementados</h2>
+  <table class="conceptos-table">
     <thead>
       <tr>
-        <th>Requerimiento</th>
-        <th>Implementación</th>
-        <th>Archivo</th>
-        <th>✓</th>
+        <th>Concepto</th>
+        <th>Ubicación en el Código</th>
+        <th>Descripción</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td>Clase Pokemon con 6 atributos</td>
-        <td><span class="code-inline">nombre, tipo, nivel, ataque, defensa, salud</span></td>
-        <td>pokemon.py L.40-68</td>
-        <td class="check">✔</td>
+        <td><strong>Constructor (__init__)</strong></td>
+        <td><code>clases/pokemon.py</code></td>
+        <td>Inicializa nombre, tipo, ataque, defensa, salud y nivel en 1. Incrementa el contador global.</td>
       </tr>
       <tr>
-        <td>Constructor __init__</td>
-        <td>Inicializa atributos y muestra mensaje de captura</td>
-        <td>pokemon.py L.40-68</td>
-        <td class="check">✔</td>
+        <td><strong>Destructor (__del__)</strong></td>
+        <td><code>clases/pokemon.py</code></td>
+        <td>Se invoca al liberar o borrar el Pokémon. Decrementa el contador global y muestra mensaje de despedida.</td>
       </tr>
       <tr>
-        <td>Destructor __del__</td>
-        <td>"Pikachu ha sido liberado ✨" al eliminar objeto</td>
-        <td>pokemon.py L.70-82</td>
-        <td class="check">✔</td>
+        <td><strong>Método de Clase (@classmethod)</strong></td>
+        <td><code>Pokemon.total_pokemons()</code></td>
+        <td>Accede a la variable de clase <code>_total</code> para reportar cuántos Pokémon siguen activos.</td>
       </tr>
       <tr>
-        <td>Método entrenar()</td>
-        <td>Sube nivel y mejora estadísticas automáticamente</td>
-        <td>pokemon.py L.84-147</td>
-        <td class="check">✔</td>
+        <td><strong>Sobrecarga de Métodos</strong></td>
+        <td><code>entrenar(*args)</code></td>
+        <td>Permite entrenar sin argumentos (automático), con 1 argumento (ataque) o 3 (ataque, defensa, salud).</td>
       </tr>
       <tr>
-        <td>Método mostrar_info()</td>
-        <td>Muestra panel con todos los datos del Pokémon</td>
-        <td>pokemon.py L.149-168</td>
-        <td class="check">✔</td>
+        <td><strong>Paso de Parámetros por Referencia</strong></td>
+        <td><code>atacar(objetivo)</code></td>
+        <td>Modifica el estado interno del objeto <code>objetivo</code> (salud) al recibirlo como parámetro.</td>
       </tr>
       <tr>
-        <td>Método atacar(objetivo)</td>
-        <td>Calcula daño, modifica salud del objetivo (ref)</td>
-        <td>pokemon.py L.170-210</td>
-        <td class="check">✔</td>
+        <td><strong>Ámbito de Variables</strong></td>
+        <td>Variables locales / globales</td>
+        <td>Uso de variables locales en cálculos (<code>daño</code>, <code>poder</code>) y globales (<code>pokemons_capturados</code>).</td>
       </tr>
       <tr>
-        <td>Método de clase @classmethod</td>
-        <td><span class="code-inline">total_pokemons(cls)</span> usando variable de clase</td>
-        <td>pokemon.py L.212-220</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Sobrecarga con *args</td>
-        <td><span class="code-inline">entrenar()</span> con 0, 1, 2 ó 3+ argumentos</td>
-        <td>pokemon.py L.84-147</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Variable de clase</td>
-        <td><span class="code-inline">Pokemon._total</span> compartido entre instancias</td>
-        <td>pokemon.py L.35</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Variable global</td>
-        <td><span class="code-inline">pokemons_capturados</span> accedida con <span class="code-inline">global</span></td>
-        <td>main.py L.24</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Paso por valor</td>
-        <td>str/int en constructor son inmutables (por valor)</td>
-        <td>pokemon.py L.40</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Paso por referencia</td>
-        <td>Objeto <span class="code-inline">objetivo</span> modificado directamente en <span class="code-inline">atacar()</span></td>
-        <td>pokemon.py L.195</td>
-        <td class="check">✔</td>
-      </tr>
-      <tr>
-        <td>Menú interactivo (7 opciones)</td>
-        <td>Capturar, Entrenar, Ver, Total, Batalla, Liberar, Salir</td>
-        <td>main.py L.350-390</td>
-        <td class="check">✔</td>
+        <td><strong>Cálculo de Poder Total</strong></td>
+        <td><code>poder_total()</code></td>
+        <td>Retorna <code>(ataque + defensa + salud) * nivel</code>.</td>
       </tr>
     </tbody>
   </table>
 
-  <!-- ═══════════════════════════════════════════════════════
-       CÓDIGO — pokemon.py
-  ════════════════════════════════════════════════════════ -->
-  <div class="page-break"></div>
-  <div class="section-header">📄 Código: clases/pokemon.py</div>
+  <!-- SECCIÓN 3: CAPTURAS / EVIDENCIAS DE EJECUCIÓN -->
+  <div class="page"></div>
+  <h2 class="section-title">3. Evidencias de Ejecución del Programa</h2>
+  <p>A continuación se muestran las salidas de la consola en cada una de las funcionalidades requeridas del simulador:</p>
 
-  <div class="code-file-header">
-    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-    <span class="file-name">pokemon_simulator / clases / pokemon.py</span>
-  </div>
-  <pre><span class="line"><span class="docstr">"""</span></span>
-<span class="line"><span class="docstr">=============================================================</span></span>
-<span class="line"><span class="docstr">  Simulador de Entrenamiento Pokémon</span></span>
-<span class="line"><span class="docstr">  Módulo: clases/pokemon.py</span></span>
-<span class="line"><span class="docstr">=============================================================</span></span>
-<span class="line"><span class="docstr">"""</span></span>
-<span class="line"></span>
-<span class="line"><span class="keyword">class</span> <span class="cls-name">Pokemon</span>:</span>
-<span class="line">    <span class="docstr">"""Representa a un Pokémon con sus estadísticas y comportamientos."""</span></span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── Variable de clase (compartida entre todas las instancias) ─────</span></span>
-<span class="line">    _total: <span class="builtin">int</span> = <span class="number">0</span>  <span class="comment"># Cuenta cuántos Pokémon existen actualmente</span></span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── CONSTRUCTOR ───────────────────────────────────────────────────</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">__init__</span>(<span class="self">self</span>, nombre: <span class="builtin">str</span>, tipo: <span class="builtin">str</span>,</span>
-<span class="line">                 ataque: <span class="builtin">int</span>, defensa: <span class="builtin">int</span>, salud: <span class="builtin">int</span>) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""Inicializa un nuevo Pokémon. 'nivel' siempre inicia en 1."""</span></span>
-<span class="line">        <span class="comment"># Atributos de instancia accedidos con self</span></span>
-<span class="line">        <span class="self">self</span>.nombre    = nombre       <span class="comment"># Paso por valor (str inmutable)</span></span>
-<span class="line">        <span class="self">self</span>.tipo      = tipo</span>
-<span class="line">        <span class="self">self</span>.nivel     = <span class="number">1</span>            <span class="comment"># Nivel inicial siempre es 1</span></span>
-<span class="line">        <span class="self">self</span>.ataque    = ataque</span>
-<span class="line">        <span class="self">self</span>.defensa   = defensa</span>
-<span class="line">        <span class="self">self</span>.salud     = salud</span>
-<span class="line">        <span class="self">self</span>.salud_max = salud        <span class="comment"># Salud máxima para referencia</span></span>
-<span class="line">        Pokemon._total += <span class="number">1</span>          <span class="comment"># Actualizar contador de clase</span></span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"\n  ✨ ¡{<span class="self">self</span>.nombre} ({<span class="self">self</span>.tipo}) ha sido capturado! "</span></span>
-<span class="line">              <span class="string">f"[Nivel {<span class="self">self</span>.nivel}]"</span>)</span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── DESTRUCTOR ────────────────────────────────────────────────────</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">__del__</span>(<span class="self">self</span>) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""Se ejecuta al eliminar el objeto. Muestra mensaje de despedida."""</span></span>
-<span class="line">        <span class="keyword">try</span>:</span>
-<span class="line">            Pokemon._total -= <span class="number">1</span></span>
-<span class="line">            <span class="builtin">print</span>(<span class="string">f"\n  🕊️  {<span class="self">self</span>.nombre} ha sido liberado ✨"</span>)</span>
-<span class="line">        <span class="keyword">except</span> <span class="builtin">Exception</span>:</span>
-<span class="line">            <span class="keyword">pass</span></span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── MÉTODO DE INSTANCIA: entrenar() con sobrecarga *args ──────────</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">entrenar</span>(<span class="self">self</span>, *args) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""</span></span>
-<span class="line"><span class="docstr">        Entrena al Pokémon. Sobrecarga con *args:</span></span>
-<span class="line"><span class="docstr">          0 args → mejora automática escalada por nivel</span></span>
-<span class="line"><span class="docstr">          1 arg  → solo ataque</span></span>
-<span class="line"><span class="docstr">          2 args → ataque + defensa</span></span>
-<span class="line"><span class="docstr">          3 args → ataque + defensa + salud</span></span>
-<span class="line"><span class="docstr">        """</span></span>
-<span class="line">        <span class="comment"># Variables locales (ámbito de función)</span></span>
-<span class="line">        bonus_ataque  = <span class="number">0</span></span>
-<span class="line">        bonus_defensa = <span class="number">0</span></span>
-<span class="line">        bonus_salud   = <span class="number">0</span></span>
-<span class="line"></span>
-<span class="line">        <span class="keyword">if</span> <span class="builtin">len</span>(args) == <span class="number">0</span>:</span>
-<span class="line">            bonus_ataque  = <span class="number">5</span> + <span class="self">self</span>.nivel * <span class="number">2</span></span>
-<span class="line">            bonus_defensa = <span class="number">3</span> + <span class="self">self</span>.nivel</span>
-<span class="line">            bonus_salud   = <span class="number">10</span> + <span class="self">self</span>.nivel * <span class="number">3</span></span>
-<span class="line">        <span class="keyword">elif</span> <span class="builtin">len</span>(args) == <span class="number">1</span>:</span>
-<span class="line">            bonus_ataque = <span class="builtin">int</span>(args[<span class="number">0</span>])</span>
-<span class="line">        <span class="keyword">elif</span> <span class="builtin">len</span>(args) == <span class="number">2</span>:</span>
-<span class="line">            bonus_ataque  = <span class="builtin">int</span>(args[<span class="number">0</span>])</span>
-<span class="line">            bonus_defensa = <span class="builtin">int</span>(args[<span class="number">1</span>])</span>
-<span class="line">        <span class="keyword">else</span>:</span>
-<span class="line">            bonus_ataque  = <span class="builtin">int</span>(args[<span class="number">0</span>])</span>
-<span class="line">            bonus_defensa = <span class="builtin">int</span>(args[<span class="number">1</span>])</span>
-<span class="line">            bonus_salud   = <span class="builtin">int</span>(args[<span class="number">2</span>])</span>
-<span class="line"></span>
-<span class="line">        <span class="self">self</span>.nivel    += <span class="number">1</span>             <span class="comment"># Subir nivel</span></span>
-<span class="line">        <span class="self">self</span>.ataque   += bonus_ataque  <span class="comment"># Modificación por referencia del objeto</span></span>
-<span class="line">        <span class="self">self</span>.defensa  += bonus_defensa</span>
-<span class="line">        <span class="self">self</span>.salud    += bonus_salud</span>
-<span class="line">        <span class="self">self</span>.salud_max = <span class="self">self</span>.salud</span>
-<span class="line"></span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"\n  💪 ¡{<span class="self">self</span>.nombre} ha entrenado duro!"</span>)</span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"     Nivel     : {<span class="self">self</span>.nivel - 1} → {<span class="self">self</span>.nivel}"</span>)</span>
-<span class="line">        <span class="keyword">if</span> bonus_ataque  > <span class="number">0</span>: <span class="builtin">print</span>(<span class="string">f"     Ataque    : +{bonus_ataque}"</span>)</span>
-<span class="line">        <span class="keyword">if</span> bonus_defensa > <span class="number">0</span>: <span class="builtin">print</span>(<span class="string">f"     Defensa   : +{bonus_defensa}"</span>)</span>
-<span class="line">        <span class="keyword">if</span> bonus_salud   > <span class="number">0</span>: <span class="builtin">print</span>(<span class="string">f"     Salud     : +{bonus_salud}"</span>)</span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── MÉTODO DE INSTANCIA: mostrar_info() ───────────────────────────</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">mostrar_info</span>(<span class="self">self</span>) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""Muestra todos los datos del Pokémon accediendo con self."""</span></span>
-<span class="line">        barra = <span class="self">self</span>._barra_salud()  <span class="comment"># variable local</span></span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"""</span></span>
-<span class="line"><span class="string">  ╔══════════════════════════════════════╗</span></span>
-<span class="line"><span class="string">  ║  🐾  {<span class="self">self</span>.nombre:&lt;33}║</span></span>
-<span class="line"><span class="string">  ╠══════════════════════════════════════╣</span></span>
-<span class="line"><span class="string">  ║  Tipo     : {<span class="self">self</span>.tipo:&lt;27}║</span></span>
-<span class="line"><span class="string">  ║  Nivel    : {<span class="self">self</span>.nivel:&lt;27}║</span></span>
-<span class="line"><span class="string">  ║  Ataque   : {<span class="self">self</span>.ataque:&lt;27}║</span></span>
-<span class="line"><span class="string">  ║  Defensa  : {<span class="self">self</span>.defensa:&lt;27}║</span></span>
-<span class="line"><span class="string">  ║  Salud    : {<span class="self">self</span>.salud}/{<span class="self">self</span>.salud_max:&lt;21}║</span></span>
-<span class="line"><span class="string">  ║  HP       : {barra:&lt;27}║</span></span>
-<span class="line"><span class="string">  ╚══════════════════════════════════════╝"""</span>)</span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── MÉTODO DE INSTANCIA: atacar(objetivo) ─────────────────────────</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">atacar</span>(<span class="self">self</span>, objetivo: <span class="string">"Pokemon"</span>) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""</span></span>
-<span class="line"><span class="docstr">        Ataca a otro Pokémon (paso por referencia).</span></span>
-<span class="line"><span class="docstr">        Daño = max(1, ataque - defensa_objetivo // 2)</span></span>
-<span class="line"><span class="docstr">        """</span></span>
-<span class="line">        <span class="keyword">import</span> random  <span class="comment"># import local</span></span>
-<span class="line">        <span class="comment"># Variables locales</span></span>
-<span class="line">        critico = random.randint(<span class="number">1</span>, <span class="number">5</span>) == <span class="number">1</span></span>
-<span class="line">        daño    = <span class="builtin">max</span>(<span class="number">1</span>, <span class="self">self</span>.ataque - objetivo.defensa // <span class="number">2</span>)</span>
-<span class="line">        <span class="keyword">if</span> critico: daño = <span class="builtin">int</span>(daño * <span class="number">1.5</span>)</span>
-<span class="line">        <span class="comment"># Modificar salud del objetivo (referencia al objeto)</span></span>
-<span class="line">        objetivo.salud = <span class="builtin">max</span>(<span class="number">0</span>, objetivo.salud - daño)</span>
-<span class="line">        tipo_ataque = <span class="string">"¡CRÍTICO! 💥"</span> <span class="keyword">if</span> critico <span class="keyword">else</span> <span class="string">"⚔️"</span></span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"\n  {tipo_ataque}  {<span class="self">self</span>.nombre} ataca a {objetivo.nombre}!"</span>)</span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"     Daño causado  : {daño}"</span>)</span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"     Salud restante: {objetivo.salud}/{objetivo.salud_max}"</span>)</span>
-<span class="line">        <span class="keyword">if</span> objetivo.salud == <span class="number">0</span>:</span>
-<span class="line">            <span class="builtin">print</span>(<span class="string">f"     💀 ¡{objetivo.nombre} ha sido derrotado!"</span>)</span>
-<span class="line"></span>
-<span class="line">    <span class="comment"># ── MÉTODO DE CLASE ───────────────────────────────────────────────</span></span>
-<span class="line">    <span class="decorator">@classmethod</span></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">total_pokemons</span>(cls) -> <span class="kw2">None</span>:</span>
-<span class="line">        <span class="docstr">"""Muestra cuántos Pokémon existen (variable de clase cls._total)."""</span></span>
-<span class="line">        <span class="builtin">print</span>(<span class="string">f"\n  🧮 Pokémon activos en el sistema: {cls._total}"</span>)</span>
-<span class="line"></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">poder_total</span>(<span class="self">self</span>) -> <span class="builtin">int</span>:</span>
-<span class="line">        <span class="docstr">"""Calcula (ataque + defensa + salud) * nivel."""</span></span>
-<span class="line">        poder = (<span class="self">self</span>.ataque + <span class="self">self</span>.defensa + <span class="self">self</span>.salud) * <span class="self">self</span>.nivel  <span class="comment"># var local</span></span>
-<span class="line">        <span class="keyword">return</span> poder</span>
-<span class="line"></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">_barra_salud</span>(<span class="self">self</span>) -> <span class="builtin">str</span>:</span>
-<span class="line">        <span class="docstr">"""Genera barra de salud visual de 10 caracteres."""</span></span>
-<span class="line">        <span class="keyword">if</span> <span class="self">self</span>.salud_max == <span class="number">0</span>: <span class="keyword">return</span> <span class="string">"░░░░░░░░░░"</span></span>
-<span class="line">        porcentaje = <span class="self">self</span>.salud / <span class="self">self</span>.salud_max  <span class="comment"># variable local</span></span>
-<span class="line">        llenas = <span class="builtin">int</span>(porcentaje * <span class="number">10</span>)</span>
-<span class="line">        <span class="keyword">return</span> <span class="string">"█"</span> * llenas + <span class="string">"░"</span> * (<span class="number">10</span> - llenas)</span>
-<span class="line"></span>
-<span class="line">    <span class="keyword">def</span> <span class="func">__str__</span>(<span class="self">self</span>) -> <span class="builtin">str</span>:</span>
-<span class="line">        <span class="keyword">return</span> (<span class="string">f"{<span class="self">self</span>.nombre} [{<span class="self">self</span>.tipo}] Lv.{<span class="self">self</span>.nivel} | "</span></span>
-<span class="line">                <span class="string">f"ATK:{<span class="self">self</span>.ataque} DEF:{<span class="self">self</span>.defensa} HP:{<span class="self">self</span>.salud}"</span>)</span></pre>
-
-  <!-- ═══════════════════════════════════════════════════════
-       CÓDIGO — main.py
-  ════════════════════════════════════════════════════════ -->
-  <div class="page-break"></div>
-  <div class="section-header">📄 Código: main.py (fragmento clave)</div>
-
-  <div class="code-file-header">
-    <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-    <span class="file-name">pokemon_simulator / main.py</span>
-  </div>
-  <pre><span class="line"><span class="keyword">import</span> sys, os</span>
-<span class="line">sys.path.insert(<span class="number">0</span>, os.path.dirname(os.path.abspath(<span class="builtin">__file__</span>)))</span>
-<span class="line"><span class="keyword">from</span> clases.pokemon <span class="keyword">import</span> Pokemon</span>
-<span class="line"></span>
-<span class="line"><span class="comment"># ══ VARIABLE GLOBAL ══════════════════════════════════════════════</span></span>
-<span class="line">pokemons_capturados: <span class="builtin">list</span>[Pokemon] = []  <span class="comment"># lista global accedida con 'global'</span></span>
-<span class="line"></span>
-<span class="line">POKEMONS_PREDEFINIDOS = {</span>
-<span class="line">    <span class="string">"1"</span>: (<span class="string">"Pikachu"</span>,   <span class="string">"Eléctrico"</span>, <span class="number">55</span>, <span class="number">40</span>, <span class="number">35</span>),</span>
-<span class="line">    <span class="string">"2"</span>: (<span class="string">"Charizard"</span>, <span class="string">"Fuego"</span>,     <span class="number">84</span>, <span class="number">78</span>, <span class="number">78</span>),</span>
-<span class="line">    <span class="string">"3"</span>: (<span class="string">"Blastoise"</span>, <span class="string">"Agua"</span>,      <span class="number">83</span>, <span class="number">100</span>, <span class="number">79</span>),</span>
-<span class="line">    <span class="string">"4"</span>: (<span class="string">"Bulbasaur"</span>, <span class="string">"Planta"</span>,    <span class="number">49</span>, <span class="number">49</span>, <span class="number">45</span>),</span>
-<span class="line">    <span class="string">"5"</span>: (<span class="string">"Mewtwo"</span>,    <span class="string">"Psíquico"</span>, <span class="number">110</span>, <span class="number">90</span>, <span class="number">106</span>),</span>
-<span class="line">    ...  <span class="comment"># 8 Pokémon predefinidos totales</span></span>
-<span class="line">}</span>
-<span class="line"></span>
-<span class="line"><span class="keyword">def</span> <span class="func">capturar_pokemon</span>() -> <span class="kw2">None</span>:</span>
-<span class="line">    <span class="keyword">global</span> pokemons_capturados  <span class="comment"># declaración de variable global</span></span>
-<span class="line">    <span class="comment"># ... (selección predefinido o personalizado)</span></span>
-<span class="line">    nuevo_pokemon = Pokemon(nombre, tipo, ataque, defensa, salud)  <span class="comment"># paso por valor</span></span>
-<span class="line">    pokemons_capturados.append(nuevo_pokemon)  <span class="comment"># paso por referencia</span></span>
-<span class="line"></span>
-<span class="line"><span class="keyword">def</span> <span class="func">entrenar_pokemon</span>() -> <span class="kw2">None</span>:</span>
-<span class="line">    <span class="comment"># Demuestra sobrecarga de métodos según modo elegido</span></span>
-<span class="line">    <span class="keyword">if</span> modo == <span class="number">1</span>:   pokemon.entrenar()                 <span class="comment"># 0 args</span></span>
-<span class="line">    <span class="keyword">elif</span> modo == <span class="number">2</span>: pokemon.entrenar(val_atk)           <span class="comment"># 1 arg</span></span>
-<span class="line">    <span class="keyword">elif</span> modo == <span class="number">3</span>: pokemon.entrenar(val_atk, val_def)  <span class="comment"># 2 args</span></span>
-<span class="line">    <span class="keyword">else</span>:           pokemon.entrenar(val_atk, val_def, val_sal)  <span class="comment"># 3 args</span></span>
-<span class="line"></span>
-<span class="line"><span class="keyword">def</span> <span class="func">mostrar_total</span>() -> <span class="kw2">None</span>:</span>
-<span class="line">    Pokemon.total_pokemons()  <span class="comment"># llamada a método de clase sin instancia</span></span>
-<span class="line"></span>
-<span class="line"><span class="keyword">def</span> <span class="func">liberar_pokemon</span>() -> <span class="kw2">None</span>:</span>
-<span class="line">    <span class="keyword">global</span> pokemons_capturados</span>
-<span class="line">    pokemons_capturados.pop(num - <span class="number">1</span>)  <span class="comment"># elimina de la lista</span></span>
-<span class="line">    <span class="keyword">del</span> pokemon   <span class="comment"># elimina la última referencia → activa __del__</span></span>
-<span class="line"></span>
-<span class="line"><span class="keyword">def</span> <span class="func">main</span>() -> <span class="kw2">None</span>:</span>
-<span class="line">    acciones = {   <span class="comment"># Tabla de despacho (variable local)</span></span>
-<span class="line">        <span class="string">"1"</span>: capturar_pokemon,  <span class="string">"2"</span>: entrenar_pokemon,</span>
-<span class="line">        <span class="string">"3"</span>: ver_informacion,   <span class="string">"4"</span>: mostrar_total,</span>
-<span class="line">        <span class="string">"5"</span>: simular_batalla,   <span class="string">"6"</span>: liberar_pokemon,</span>
-<span class="line">    }</span>
-<span class="line">    <span class="keyword">while</span> <span class="kw2">True</span>:</span>
-<span class="line">        opcion = <span class="builtin">input</span>(<span class="string">"\n  Elige una opción (1-7): "</span>).strip()  <span class="comment"># var local</span></span>
-<span class="line">        <span class="keyword">if</span> opcion == <span class="string">"7"</span>: <span class="keyword">break</span></span>
-<span class="line">        <span class="keyword">elif</span> opcion <span class="keyword">in</span> acciones: acciones[opcion]()</span>
-<span class="line"></span>
-<span class="line"><span class="keyword">if</span> <span class="builtin">__name__</span> == <span class="string">"__main__"</span>:</span>
-<span class="line">    main()</span></pre>
-
-  <!-- ═══════════════════════════════════════════════════════
-       CAPTURAS DE EJECUCIÓN
-  ════════════════════════════════════════════════════════ -->
-  <div class="page-break"></div>
-  <div class="section-header">🖥️ Capturas de Ejecución del Programa</div>
-
-  <!-- Captura 1: Menú principal -->
-  <p style="color:var(--muted);margin-bottom:10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 1</strong> — Menú principal e inicio del simulador</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">zsh — python3 main.py</span>
-    </div>
-    <div class="terminal">  <span class="t-yellow t-bold">╔══════════════════════════════════════════════════════╗</span>
-  <span class="t-yellow t-bold">║   ⚡  SIMULADOR DE ENTRENAMIENTO POKÉMON  ⚡         ║</span>
-  <span class="t-yellow t-bold">║          Programación Orientada a Objetos            ║</span>
-  <span class="t-yellow t-bold">╚══════════════════════════════════════════════════════╝</span>
-
-  <span class="t-cyan">┌──────────────────────────────────────┐</span>
-  <span class="t-cyan">│           MENÚ PRINCIPAL             │</span>
-  <span class="t-cyan">├──────────────────────────────────────┤</span>
-  <span class="t-cyan">│  1. Capturar nuevo Pokémon  🐉        │</span>
-  <span class="t-cyan">│  2. Entrenar un Pokémon    💪         │</span>
-  <span class="t-cyan">│  3. Ver información        📋         │</span>
-  <span class="t-cyan">│  4. Total de Pokémon       🧮         │</span>
-  <span class="t-cyan">│  5. Simular batalla        ⚔️          │</span>
-  <span class="t-cyan">│  6. Liberar un Pokémon     🕊️          │</span>
-  <span class="t-cyan">│  7. Salir                  🚪         │</span>
-  <span class="t-cyan">└──────────────────────────────────────┘</span>
-
-  Elige una opción (1-7): <span class="t-input">1</span></div>
+  <div class="no-break">
+    <div class="console-header">Prueba 1: Captura de Pokémon (Constructor y Atributos Iniciales)</div>
+    <div class="console-box">>>> OPCIÓN 1: Capturar Pokémon
+  ✨ ¡Pikachu (Eléctrico) ha sido capturado! [Nivel 1]
+  ✨ ¡Charizard (Fuego) ha sido capturado! [Nivel 1]
+  ✨ ¡Aguamon (Agua) ha sido capturado! [Nivel 1]</div>
   </div>
 
-  <!-- Captura 2: Capturar Pokémon -->
-  <p style="color:var(--muted);margin:20px 0 10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 2</strong> — Opción 1: Capturar Pokémon (constructor __init__ en acción)</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">Capturando Pokémon predefinido</span>
-    </div>
-    <div class="terminal">  <span class="t-dim">══ CAPTURAR POKÉMON ══</span>
+  <div class="no-break">
+    <div class="console-header">Prueba 2: Mostrar Información y Cálculo de Poder Total</div>
+    <div class="console-box">>>> OPCIÓN 3: Ver información de Pikachu
 
-  ¿Cómo quieres capturar tu Pokémon?
-    A. Elegir un Pokémon predefinido
-    B. Crear un Pokémon personalizado
-
-  Opción (A/B): <span class="t-input">A</span>
-
-  Pokémon disponibles:
-    1. Pikachu     | Tipo: Eléctrico  | ATK:55 DEF:40 HP:35
-    2. Charizard   | Tipo: Fuego      | ATK:84 DEF:78 HP:78
-    3. Blastoise   | Tipo: Agua       | ATK:83 DEF:100 HP:79
-    4. Bulbasaur   | Tipo: Planta     | ATK:49 DEF:49 HP:45
-    5. Mewtwo      | Tipo: Psíquico   | ATK:110 DEF:90 HP:106
-
-  Elige un número (1-8): <span class="t-input">1</span>
-
-  <span class="t-green t-bold">✨ ¡Pikachu (Eléctrico) ha sido capturado! [Nivel 1]</span>
-
-  Elige un número (1-8): <span class="t-input">2</span>
-
-  <span class="t-green t-bold">✨ ¡Charizard (Fuego) ha sido capturado! [Nivel 1]</span></div>
+  ╔══════════════════════════════════════╗
+  ║  🐾  Pikachu                          ║
+  ╠══════════════════════════════════════╣
+  ║  Tipo     : Eléctrico                  ║
+  ║  Nivel    : 1                          ║
+  ║  Ataque   : 55                         ║
+  ║  Defensa  : 40                         ║
+  ║  Salud    : 35/35                   ║
+  ║  HP       : ██════════                 ║
+  ╚══════════════════════════════════════╝
+  ⭐ Poder total: 130 pts</div>
   </div>
 
-  <!-- Captura 3: Ver información -->
-  <p style="color:var(--muted);margin:20px 0 10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 3</strong> — Opción 3: Ver información (mostrar_info() + poder_total())</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">Ver información de Pokémon</span>
-    </div>
-    <div class="terminal">
-  <span class="t-cyan">╔══════════════════════════════════════╗</span>
-  <span class="t-cyan">║  🐾  Pikachu                         ║</span>
-  <span class="t-cyan">╠══════════════════════════════════════╣</span>
-  <span class="t-cyan">║  Tipo     : Eléctrico                ║</span>
-  <span class="t-cyan">║  Nivel    : 1                        ║</span>
-  <span class="t-cyan">║  Ataque   : 55                       ║</span>
-  <span class="t-cyan">║  Defensa  : 40                       ║</span>
-  <span class="t-cyan">║  Salud    : 35/35                    ║</span>
-  <span class="t-cyan">║  HP       : ██████████               ║</span>
-  <span class="t-cyan">╚══════════════════════════════════════╝</span>
-  <span class="t-yellow">⭐ Poder total: 130 pts</span>
+  <div class="no-break">
+    <div class="console-header">Prueba 3: Entrenamiento con Sobrecarga (*args: 0, 1 y 3 argumentos)</div>
+    <div class="console-box">>>> Caso A: Entrenar sin argumentos (mejora automática por nivel)
+  💪 ¡Pikachu ha entrenado duro!
+     Nivel     : 1 → 2
+     Ataque    : +7
+     Defensa   : +4
+     Salud     : +13
+  ⭐ Nuevo poder total: 308 pts
 
-  <span class="t-cyan">╔══════════════════════════════════════╗</span>
-  <span class="t-cyan">║  🐾  Charizard                       ║</span>
-  <span class="t-cyan">╠══════════════════════════════════════╣</span>
-  <span class="t-cyan">║  Tipo     : Fuego                    ║</span>
-  <span class="t-cyan">║  Nivel    : 1                        ║</span>
-  <span class="t-cyan">║  Ataque   : 84                       ║</span>
-  <span class="t-cyan">║  Defensa  : 78                       ║</span>
-  <span class="t-cyan">║  Salud    : 78/78                    ║</span>
-  <span class="t-cyan">║  HP       : ██████████               ║</span>
-  <span class="t-cyan">╚══════════════════════════════════════╝</span>
-  <span class="t-yellow">⭐ Poder total: 240 pts</span></div>
+>>> Caso B: Entrenar con 1 argumento (+20 Ataque)
+  💪 ¡Pikachu ha entrenado duro!
+     Nivel     : 2 → 3
+     Ataque    : +20
+
+>>> Caso C: Entrenar con 3 argumentos (+15 Ataque, +10 Defensa, +30 Salud)
+  💪 ¡Charizard ha entrenado duro!
+     Nivel     : 1 → 2
+     Ataque    : +15
+     Defensa   : +10
+     Salud     : +30
+  ⭐ Nuevo poder total: 590 pts</div>
   </div>
 
-  <!-- Captura 4: Entrenar con sobrecarga -->
-  <div class="page-break"></div>
-  <p style="color:var(--muted);margin-bottom:10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 4</strong> — Opción 2: Entrenamiento con sobrecarga de métodos (*args)</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">Demostración de sobrecarga *args</span>
-    </div>
-    <div class="terminal">  <span class="t-dim">══ ENTRENAR POKÉMON ══</span>
-
-  <span class="comment"># — Modo 1: sin argumentos (automático) —</span>
-  Entrenando a Pikachu...
-  ¿Cómo quieres entrenar?
-    1. Entrenamiento automático (sin argumentos)  ← <span class="t-yellow">entrenar()</span>
-    2. Mejorar sólo Ataque (1 argumento)          ← <span class="t-yellow">entrenar(20)</span>
-    3. Mejorar Ataque y Defensa (2 argumentos)    ← <span class="t-yellow">entrenar(15, 10)</span>
-    4. Mejorar Ataque, Defensa y Salud (3 args)   ← <span class="t-yellow">entrenar(10, 8, 25)</span>
-
-  Modo de entrenamiento: <span class="t-input">1</span>
-
-  <span class="t-green t-bold">💪 ¡Pikachu ha entrenado duro!</span>
-     Nivel     : 1 → <span class="t-yellow">2</span>
-     Ataque    : <span class="t-green">+7</span>   (5 + nivel×2)
-     Defensa   : <span class="t-green">+4</span>   (3 + nivel)
-     Salud     : <span class="t-green">+13</span>  (10 + nivel×3)
-  <span class="t-yellow">⭐ Poder total: 236 pts</span>
-
-  <span class="t-dim">— — — Ahora con 3 argumentos — — —</span>
-
-  Modo de entrenamiento: <span class="t-input">4</span>
-  Puntos de Ataque a ganar : <span class="t-input">15</span>
-  Puntos de Defensa a ganar: <span class="t-input">10</span>
-  Puntos de Salud a ganar  : <span class="t-input">30</span>
-
-  <span class="t-green t-bold">💪 ¡Charizard ha entrenado duro!</span>
-     Nivel     : 1 → <span class="t-yellow">2</span>
-     Ataque    : <span class="t-green">+15</span>
-     Defensa   : <span class="t-green">+10</span>
-     Salud     : <span class="t-green">+30</span>
-  <span class="t-yellow">⭐ Poder total: 580 pts</span></div>
+  <div class="no-break">
+    <div class="console-header">Prueba 4: Total de Pokémon Activos (Método de Clase @classmethod)</div>
+    <div class="console-box">>>> OPCIÓN 4: Total de Pokémon (método de clase)
+  🧮 Pokémon activos en el sistema: 3
+  📋 En tu equipo: 3 Pokémon</div>
   </div>
 
-  <!-- Captura 5: Total y batalla -->
-  <p style="color:var(--muted);margin:20px 0 10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 5</strong> — Opción 4: Método de clase + Opción 5: Batalla</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">total_pokemons() + atacar()</span>
-    </div>
-    <div class="terminal">  <span class="t-dim">══ TOTAL DE POKÉMON (método de clase) ══</span>
-
-  <span class="t-purple t-bold">🧮 Pokémon activos en el sistema: 2</span>
-  <span class="t-blue">📋 En tu equipo: 2 Pokémon</span>
-
-  <span class="t-dim">══ SIMULAR BATALLA ══</span>
-
-  Selecciona el Pokémon atacante:
-    1. Pikachu [Eléctrico] Lv.2 | ATK:62 DEF:44 HP:48
-    2. Charizard [Fuego] Lv.2 | ATK:99 DEF:88 HP:108
-  Número del Pokémon: <span class="t-input">1</span>
-
-  Selecciona el Pokémon defensor:
-    1. Pikachu [Eléctrico] Lv.2 | ATK:62 DEF:44 HP:48
-    2. Charizard [Fuego] Lv.2 | ATK:99 DEF:88 HP:108
-  Número del Pokémon: <span class="t-input">2</span>
-
+  <div class="no-break">
+    <div class="console-header">Prueba 5: Simulación de Batalla (Paso por Referencia)</div>
+    <div class="console-box">>>> OPCIÓN 5: Batalla entre Pikachu y Charizard
   🥊 ¡Pikachu VS Charizard!
   ────────────────────────────────────────
-
-  <span class="t-orange t-bold">⚔️   Pikachu ataca a Charizard!</span>
-       Daño causado  : <span class="t-red">18</span>
-       Salud restante: <span class="t-green">90/108</span></div>
+  ⚔️   Pikachu ataca a Charizard!
+     Daño causado  : 38
+     Salud restante: 70/108 (El objeto Charizard fue modificado en memoria)</div>
   </div>
 
-  <!-- Captura 6: Liberar (destructor) -->
-  <p style="color:var(--muted);margin:20px 0 10px;font-size:12px;">▸ <strong style="color:var(--text)">Captura 6</strong> — Opción 6: Liberar Pokémon (destructor __del__ en acción)</p>
-  <div class="terminal-wrapper no-break">
-    <div class="terminal-bar">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-family:'Fira Code',monospace;font-size:11px;color:#888;margin-left:10px;">Destructor __del__ activado</span>
-    </div>
-    <div class="terminal">  <span class="t-dim">══ LIBERAR POKÉMON ══</span>
-
-  Pokémon disponibles:
-    1. Pikachu [Eléctrico] Lv.2 | ATK:62 DEF:44 HP:48
-    2. Charizard [Fuego] Lv.2   | ATK:99 DEF:88 HP:90
-
-  Número del Pokémon a liberar: <span class="t-input">1</span>
-  ¿Seguro que quieres liberar a Pikachu? (s/n): <span class="t-input">s</span>
-
-  <span class="t-green t-bold">🕊️  Pikachu ha sido liberado ✨</span>   <span class="t-dim">← __del__ llamado automáticamente</span>
-
-  <span class="t-dim">══════════════════════════════════════════════════════════</span>
-
-  Elige una opción (1-7): <span class="t-input">7</span>
-
-  <span class="t-yellow t-bold">👋 ¡Hasta pronto, Entrenador! ¡Atrapa a todos! 🎯</span>
-
-  <span class="t-dim">🕊️  Charizard ha sido liberado ✨  ← __del__ al cerrar el programa</span></div>
+  <div class="no-break">
+    <div class="console-header">Prueba 6: Liberar Pokémon (Invocación del Destructor __del__)</div>
+    <div class="console-box">>>> OPCIÓN 6: Liberar a Aguamon
+  ¿Seguro que quieres liberar a Aguamon? (s/n): s
+  🕊️  Aguamon ha sido liberado ✨
+  🧮 Pokémon restantes en el sistema: 2</div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       REPOSITORIO GITHUB
-  ════════════════════════════════════════════════════════ -->
-  <div class="page-break"></div>
-  <div class="section-header">🐙 Repositorio en GitHub</div>
+  <!-- SECCIÓN 4: CÓDIGO FUENTE COMPLETO -->
+  <div class="page"></div>
+  <h2 class="section-title">4. Código Fuente del Programa</h2>
 
-  <div class="github-card">
-    <div class="github-icon">🐙</div>
-    <div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">pokemon-simulator-poo</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
-        Simulador de Entrenamiento Pokémon · Python · Programación Orientada a Objetos
-      </div>
-      <span class="github-url" id="github-repo-url">https://github.com/[TU-USUARIO]/pokemon-simulator-poo</span>
-      <div style="margin-top:12px;font-size:11px;color:var(--muted);">
-        📂 <strong style="color:var(--text)">Archivos:</strong> &nbsp;
-        <span class="code-inline">main.py</span> &nbsp;
-        <span class="code-inline">clases/pokemon.py</span> &nbsp;
-        <span class="code-inline">clases/__init__.py</span> &nbsp;
-        <span class="code-inline">README.md</span>
-      </div>
-    </div>
+  <div class="no-break">
+    <div class="file-badge">Archivo 1: clases/pokemon.py</div>
+    <p>Contiene la definición de la clase <code>Pokemon</code>, constructor, destructor, métodos de instancia, método de clase y sobrecarga.</p>
   </div>
+  <pre class="code-block">&quot;&quot;&quot;
+=============================================================
+  Simulador de Entrenamiento Pokémon
+  Módulo: clases/pokemon.py
+  Descripción: Define la clase Pokemon con todos los
+               conceptos de POO requeridos.
+=============================================================
+&quot;&quot;&quot;
 
-  <div style="background:var(--card);border-radius:12px;padding:20px 24px;border:1px solid rgba(255,255,255,.07);margin-bottom:30px;">
-    <p style="font-weight:700;margin-bottom:14px;color:var(--primary);">📋 Comandos para subir al repositorio:</p>
-    <div class="code-file-header" style="margin-top:0;">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span class="file-name">Terminal — Git commands</span>
-    </div>
-    <pre style="border-radius:0 0 10px 10px;margin-bottom:0;"><span class="line"><span class="t-dim"># 1. Inicializar repositorio local</span></span>
-<span class="line"><span class="t-green">cd</span> pokemon_simulator</span>
-<span class="line"><span class="t-blue">git</span> init</span>
-<span class="line"><span class="t-blue">git</span> add .</span>
-<span class="line"><span class="t-blue">git</span> commit -m <span class="string">"feat: Simulador Pokémon - POO completo"</span></span>
-<span class="line"></span>
-<span class="line"><span class="t-dim"># 2. Conectar con GitHub (reemplaza con tu usuario)</span></span>
-<span class="line"><span class="t-blue">git</span> remote add origin https://github.com/[TU-USUARIO]/pokemon-simulator-poo.git</span>
-<span class="line"><span class="t-blue">git</span> branch -M main</span>
-<span class="line"><span class="t-blue">git</span> push -u origin main</span></pre>
+# ─── Variable global de clase (compartida entre todas las instancias) ──────────
+# Se actualiza directamente en Pokemon._total para no depender del
+# contador mutable desde fuera de la clase.
+
+class Pokemon:
+    &quot;&quot;&quot;
+    Representa a un Pokémon con sus estadísticas y comportamientos.
+
+    Atributos de clase
+    ------------------
+    _total : int
+        Número total de Pokémon que han sido creados (variable de clase).
+
+    Atributos de instancia
+    ----------------------
+    nombre   : str   – Nombre del Pokémon.
+    tipo     : str   – Tipo elemental (Fuego, Agua, Eléctrico, etc.).
+    nivel    : int   – Nivel actual; inicia en 1.
+    ataque   : int   – Puntos de ataque base.
+    defensa  : int   – Puntos de defensa base.
+    salud    : int   – Puntos de salud actuales.
+    salud_max: int   – Puntos de salud máximos (igual a salud inicial).
+    &quot;&quot;&quot;
+
+    # ── Variable de clase ──────────────────────────────────────────────────────
+    _total: int = 0  # Cuenta cuántos Pokémon existen actualmente
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # CONSTRUCTOR
+    # ══════════════════════════════════════════════════════════════════════════
+    def __init__(self, nombre: str, tipo: str,
+                 ataque: int, defensa: int, salud: int) -&gt; None:
+        &quot;&quot;&quot;
+        Inicializa un nuevo Pokémon con los valores dados.
+
+        Parámetros
+        ----------
+        nombre  : str – Nombre del Pokémon.
+        tipo    : str – Tipo elemental.
+        ataque  : int – Puntos de ataque base.
+        defensa : int – Puntos de defensa base.
+        salud   : int – Puntos de salud base.
+
+        Nota: &#x27;nivel&#x27; siempre inicia en 1.
+        &quot;&quot;&quot;
+        # ── Atributos de instancia (self) ──────────────────────────────────
+        self.nombre    = nombre       # Paso de parámetro por valor (str inmutable)
+        self.tipo      = tipo
+        self.nivel     = 1            # Nivel inicial siempre es 1
+        self.ataque    = ataque
+        self.defensa   = defensa
+        self.salud     = salud
+        self.salud_max = salud        # Guardamos la salud máxima para referencia
+
+        # ── Actualizar contador de clase ───────────────────────────────────
+        Pokemon._total += 1
+
+        # ── Mensaje de creación ────────────────────────────────────────────
+        print(f&quot;\n  ✨ ¡{self.nombre} ({self.tipo}) ha sido capturado! &quot;
+              f&quot;[Nivel {self.nivel}]&quot;)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # DESTRUCTOR
+    # ══════════════════════════════════════════════════════════════════════════
+    def __del__(self) -&gt; None:
+        &quot;&quot;&quot;
+        Se ejecuta cuando el objeto es eliminado de memoria.
+        Muestra un mensaje de despedida y decrementa el contador.
+        &quot;&quot;&quot;
+        # Protección ante errores durante el apagado del intérprete
+        try:
+            Pokemon._total -= 1
+            print(f&quot;\n  🕊️  {self.nombre} ha sido liberado ✨&quot;)
+        except Exception:
+            pass
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÉTODOS DE INSTANCIA
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def entrenar(self, *args) -&gt; None:
+        &quot;&quot;&quot;
+        Entrena al Pokémon aumentando su nivel y sus estadísticas.
+
+        Sobrecarga mediante *args
+        ─────────────────────────
+        Sin argumentos  → aumenta ataque, defensa y salud con valores
+                          predeterminados escalados por nivel.
+        1 argumento     → sólo mejora el ataque en la cantidad indicada.
+        2 argumentos    → mejora ataque y defensa en las cantidades indicadas.
+        3+ argumentos   → mejora ataque, defensa y salud con los valores dados.
+
+        Parámetros
+        ----------
+        *args : int (opcional) – Cantidades de mejora para cada estadística.
+
+        Variables locales
+        -----------------
+        bonus_ataque, bonus_defensa, bonus_salud : int
+            Incrementos que se aplicarán en esta sesión de entrenamiento.
+        &quot;&quot;&quot;
+        # ── Variables locales (ámbito de función) ──────────────────────────
+        bonus_ataque  = 0
+        bonus_defensa = 0
+        bonus_salud   = 0
+
+        if len(args) == 0:
+            # Sin argumentos: mejora automática escalada al nivel actual
+            bonus_ataque  = 5 + self.nivel * 2
+            bonus_defensa = 3 + self.nivel
+            bonus_salud   = 10 + self.nivel * 3
+
+        elif len(args) == 1:
+            # 1 argumento: sólo ataque
+            bonus_ataque = int(args[0])
+
+        elif len(args) == 2:
+            # 2 argumentos: ataque y defensa
+            bonus_ataque  = int(args[0])
+            bonus_defensa = int(args[1])
+
+        else:
+            # 3 o más argumentos: ataque, defensa y salud
+            bonus_ataque  = int(args[0])
+            bonus_defensa = int(args[1])
+            bonus_salud   = int(args[2])
+
+        # ── Subir nivel ────────────────────────────────────────────────────
+        self.nivel    += 1
+
+        # ── Aplicar bonificaciones (modificación por referencia del objeto) ──
+        self.ataque   += bonus_ataque
+        self.defensa  += bonus_defensa
+        self.salud    += bonus_salud
+        self.salud_max = self.salud    # La salud máxima crece con el entrenamiento
+
+        # ── Mostrar resultado ──────────────────────────────────────────────
+        print(f&quot;\n  💪 ¡{self.nombre} ha entrenado duro!&quot;)
+        print(f&quot;     Nivel     : {self.nivel - 1} → {self.nivel}&quot;)
+        if bonus_ataque  &gt; 0:
+            print(f&quot;     Ataque    : +{bonus_ataque}&quot;)
+        if bonus_defensa &gt; 0:
+            print(f&quot;     Defensa   : +{bonus_defensa}&quot;)
+        if bonus_salud   &gt; 0:
+            print(f&quot;     Salud     : +{bonus_salud}&quot;)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    def mostrar_info(self) -&gt; None:
+        &quot;&quot;&quot;
+        Muestra todos los datos del Pokémon en un formato legible.
+        Accede a los atributos usando self.
+        &quot;&quot;&quot;
+        barra = self._barra_salud()
+        print(f&quot;&quot;&quot;
+  ╔══════════════════════════════════════╗
+  ║  🐾  {self.nombre:&lt;33}║
+  ╠══════════════════════════════════════╣
+  ║  Tipo     : {self.tipo:&lt;27}║
+  ║  Nivel    : {self.nivel:&lt;27}║
+  ║  Ataque   : {self.ataque:&lt;27}║
+  ║  Defensa  : {self.defensa:&lt;27}║
+  ║  Salud    : {self.salud}/{self.salud_max:&lt;21}║
+  ║  HP       : {barra:&lt;27}║
+  ╚══════════════════════════════════════╝&quot;&quot;&quot;)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    def atacar(self, objetivo: &quot;Pokemon&quot;) -&gt; None:
+        &quot;&quot;&quot;
+        Simula un ataque a otro Pokémon.
+        El daño se calcula con:  daño = max(1, self.ataque - objetivo.defensa // 2)
+
+        Parámetros
+        ----------
+        objetivo : Pokemon – El Pokémon que recibirá el daño.
+                              Se pasa por referencia (objeto mutable),
+                              por lo que sus atributos son modificados.
+
+        Variables locales
+        -----------------
+        daño    : int  – Daño calculado para este ataque.
+        critico : bool – Indica si el ataque fue crítico (1 en 5).
+        &quot;&quot;&quot;
+        import random  # ámbito local de import
+
+        # ── Variables locales ──────────────────────────────────────────────
+        critico = random.randint(1, 5) == 1
+        daño    = max(1, self.ataque - objetivo.defensa // 2)
+
+        if critico:
+            daño = int(daño * 1.5)
+
+        # ── Modificar la salud del objetivo (paso por referencia) ──────────
+        objetivo.salud = max(0, objetivo.salud - daño)
+
+        # ── Mostrar resultado ──────────────────────────────────────────────
+        tipo_ataque = &quot;¡CRÍTICO! 💥&quot; if critico else &quot;⚔️&quot;
+        print(f&quot;\n  {tipo_ataque}  {self.nombre} ataca a {objetivo.nombre}!&quot;)
+        print(f&quot;     Daño causado  : {daño}&quot;)
+        print(f&quot;     Salud restante: {objetivo.salud}/{objetivo.salud_max}&quot;)
+
+        if objetivo.salud == 0:
+            print(f&quot;     💀 ¡{objetivo.nombre} ha sido derrotado!&quot;)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÉTODO DE CLASE
+    # ══════════════════════════════════════════════════════════════════════════
+
+    @classmethod
+    def total_pokemons(cls) -&gt; None:
+        &quot;&quot;&quot;
+        Muestra cuántos Pokémon han sido creados y siguen activos.
+        Accede a la variable de clase a través de &#x27;cls&#x27;.
+        &quot;&quot;&quot;
+        print(f&quot;\n  🧮 Pokémon activos en el sistema: {cls._total}&quot;)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÉTODO DE PODER TOTAL
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def poder_total(self) -&gt; int:
+        &quot;&quot;&quot;
+        Calcula y retorna el poder total del Pokémon.
+        Fórmula: (ataque + defensa + salud) * nivel
+
+        Retorno
+        -------
+        int – Puntuación de poder total.
+        &quot;&quot;&quot;
+        # Variable local para el cálculo
+        poder = (self.ataque + self.defensa + self.salud) * self.nivel
+        return poder
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÉTODO PRIVADO AUXILIAR
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def _barra_salud(self) -&gt; str:
+        &quot;&quot;&quot;
+        Genera una barra de salud visual de 10 caracteres.
+
+        Retorno
+        -------
+        str – Barra de salud con emojis.
+        &quot;&quot;&quot;
+        if self.salud_max == 0:
+            return &quot;░░░░░░░░░░&quot;
+        # Variable local: porcentaje de salud
+        porcentaje = self.salud / self.salud_max
+        llenas     = int(porcentaje * 10)
+        vacias     = 10 - llenas
+        return &quot;█&quot; * llenas + &quot;░&quot; * vacias
+
+    # ──────────────────────────────────────────────────────────────────────────
+    def __str__(self) -&gt; str:
+        &quot;&quot;&quot;Representación legible del Pokémon (usada en print()).&quot;&quot;&quot;
+        return (f&quot;{self.nombre} [{self.tipo}] &quot;
+                f&quot;Lv.{self.nivel} | &quot;
+                f&quot;ATK:{self.ataque} DEF:{self.defensa} HP:{self.salud}&quot;)
+
+    def __repr__(self) -&gt; str:
+        &quot;&quot;&quot;Representación técnica del Pokémon.&quot;&quot;&quot;
+        return (f&quot;Pokemon(nombre=&#x27;{self.nombre}&#x27;, tipo=&#x27;{self.tipo}&#x27;, &quot;
+                f&quot;nivel={self.nivel}, ataque={self.ataque}, &quot;
+                f&quot;defensa={self.defensa}, salud={self.salud})&quot;)
+</pre>
+
+  <div class="page"></div>
+  <div class="no-break">
+    <div class="file-badge">Archivo 2: main.py</div>
+    <p>Contiene el menú interactivo, la administración del equipo de Pokémon, variables globales y flujo principal de ejecución.</p>
   </div>
+  <pre class="code-block">&quot;&quot;&quot;
+=============================================================
+  Simulador de Entrenamiento Pokémon
+  Archivo: main.py
+  Descripción: Menú principal e interacción con el usuario.
+               Aplica variables globales/locales, paso de
+               parámetros y uso de la clase Pokemon.
+=============================================================
+&quot;&quot;&quot;
 
-  <!-- Footer -->
-  <div class="footer">
-    <p>Simulador de Entrenamiento Pokémon · Programación Orientada a Objetos · Python 3.13</p>
-    <p style="margin-top:4px;">Conceptos aplicados: Constructores · Destructores · Métodos de Clase · Sobrecarga *args · Variables Globales/Locales · Paso por Referencia</p>
-  </div>
+import sys
+import os
 
-</div>
+# ── Ajustamos el path para importar el paquete &#x27;clases&#x27; ───────────────────────
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-<script>
-  // Auto-detect if running as a file and add print button
-  if (window.location.protocol === 'file:') {
-    const btn = document.createElement('button');
-    btn.textContent = '🖨️ Imprimir / Guardar como PDF';
-    btn.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;'
-      + 'background:#FFD700;color:#000;border:none;border-radius:10px;'
-      + 'font-weight:700;font-size:13px;cursor:pointer;z-index:9999;'
-      + 'box-shadow:0 4px 20px rgba(255,215,0,.4);font-family:Inter,sans-serif;';
-    btn.onclick = () => window.print();
-    document.body.appendChild(btn);
-  }
-</script>
+from clases.pokemon import Pokemon
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VARIABLE GLOBAL
+# La lista de Pokémon capturados es global para que todas las
+# funciones del menú puedan acceder y modificarla.
+# ══════════════════════════════════════════════════════════════════════════════
+pokemons_capturados: list[Pokemon] = []
+
+# ── Tipos disponibles (constante global) ──────────────────────────────────────
+TIPOS_DISPONIBLES = [
+    &quot;Fuego&quot;, &quot;Agua&quot;, &quot;Planta&quot;, &quot;Eléctrico&quot;, &quot;Psíquico&quot;,
+    &quot;Hielo&quot;, &quot;Lucha&quot;, &quot;Tierra&quot;, &quot;Volador&quot;, &quot;Veneno&quot;,
+    &quot;Normal&quot;, &quot;Dragón&quot;, &quot;Siniestro&quot;, &quot;Acero&quot;, &quot;Hada&quot;
+]
+
+# ── Pokémon predefinidos para captura rápida ───────────────────────────────────
+POKEMONS_PREDEFINIDOS = {
+    &quot;1&quot;: (&quot;Pikachu&quot;,    &quot;Eléctrico&quot;, 55, 40, 35),
+    &quot;2&quot;: (&quot;Charizard&quot;,  &quot;Fuego&quot;,     84, 78, 78),
+    &quot;3&quot;: (&quot;Blastoise&quot;,  &quot;Agua&quot;,      83, 100, 79),
+    &quot;4&quot;: (&quot;Bulbasaur&quot;,  &quot;Planta&quot;,    49, 49, 45),
+    &quot;5&quot;: (&quot;Mewtwo&quot;,     &quot;Psíquico&quot;, 110, 90, 106),
+    &quot;6&quot;: (&quot;Gengar&quot;,     &quot;Veneno&quot;,    65, 60, 60),
+    &quot;7&quot;: (&quot;Snorlax&quot;,    &quot;Normal&quot;,    110, 65, 160),
+    &quot;8&quot;: (&quot;Dragonite&quot;,  &quot;Dragón&quot;,   134, 95, 91),
+}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIONES DEL MENÚ
+# ══════════════════════════════════════════════════════════════════════════════
+
+def limpiar_pantalla() -&gt; None:
+    &quot;&quot;&quot;Limpia la terminal (variable local: sistema operativo).&quot;&quot;&quot;
+    sistema = os.name  # variable local
+    os.system(&quot;cls&quot; if sistema == &quot;nt&quot; else &quot;clear&quot;)
+
+
+def mostrar_banner() -&gt; None:
+    &quot;&quot;&quot;Imprime el banner principal del simulador.&quot;&quot;&quot;
+    print(&quot;&quot;&quot;
+  ╔══════════════════════════════════════════════════════╗
+  ║   ⚡  SIMULADOR DE ENTRENAMIENTO POKÉMON  ⚡         ║
+  ║          Programación Orientada a Objetos            ║
+  ╚══════════════════════════════════════════════════════╝&quot;&quot;&quot;)
+
+
+def mostrar_menu_principal() -&gt; None:
+    &quot;&quot;&quot;Muestra las opciones del menú principal.&quot;&quot;&quot;
+    print(&quot;&quot;&quot;
+  ┌──────────────────────────────────────┐
+  │           MENÚ PRINCIPAL             │
+  ├──────────────────────────────────────┤
+  │  1. Capturar nuevo Pokémon  🐉        │
+  │  2. Entrenar un Pokémon    💪         │
+  │  3. Ver información        📋         │
+  │  4. Total de Pokémon       🧮         │
+  │  5. Simular batalla        ⚔️          │
+  │  6. Liberar un Pokémon     🕊️          │
+  │  7. Salir                  🚪         │
+  └──────────────────────────────────────┘&quot;&quot;&quot;)
+
+
+def pedir_entero(mensaje: str, minimo: int = 1, maximo: int = 999) -&gt; int:
+    &quot;&quot;&quot;
+    Solicita un número entero al usuario dentro de un rango.
+
+    Parámetros (paso por valor)
+    ---------------------------
+    mensaje : str – Texto de solicitud.
+    minimo  : int – Valor mínimo aceptado.
+    maximo  : int – Valor máximo aceptado.
+
+    Variable local
+    --------------
+    valor : int – Valor ingresado por el usuario.
+    &quot;&quot;&quot;
+    while True:
+        try:
+            valor = int(input(f&quot;  {mensaje}: &quot;).strip())  # variable local
+            if minimo &lt;= valor &lt;= maximo:
+                return valor
+            print(f&quot;  ⚠️  Ingresa un número entre {minimo} y {maximo}.&quot;)
+        except ValueError:
+            print(&quot;  ⚠️  Por favor ingresa un número válido.&quot;)
+
+
+def seleccionar_pokemon(mensaje: str = &quot;Selecciona un Pokémon&quot;) -&gt; Pokemon | None:
+    &quot;&quot;&quot;
+    Muestra la lista de Pokémon capturados y permite seleccionar uno.
+
+    Parámetros
+    ----------
+    mensaje : str – Texto de encabezado.
+
+    Retorno
+    -------
+    Pokemon | None – El Pokémon seleccionado, o None si no hay ninguno.
+    &quot;&quot;&quot;
+    # Acceso a variable global
+    global pokemons_capturados
+
+    if not pokemons_capturados:
+        print(&quot;\n  ⚠️  No tienes Pokémon capturados todavía.&quot;)
+        return None
+
+    print(f&quot;\n  {mensaje}:&quot;)
+    for indice, poke in enumerate(pokemons_capturados, start=1):
+        print(f&quot;    {indice}. {poke}&quot;)
+
+    opcion = pedir_entero(&quot;Número del Pokémon&quot;, 1, len(pokemons_capturados))
+    return pokemons_capturados[opcion - 1]  # Acceso por referencia al objeto
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 1: CAPTURAR POKÉMON
+# ══════════════════════════════════════════════════════════════════════════════
+
+def capturar_pokemon() -&gt; None:
+    &quot;&quot;&quot;
+    Permite crear un nuevo Pokémon (predefinido o personalizado)
+    y lo agrega a la lista global.
+
+    Variables locales: nombre, tipo, ataque, defensa, salud, nuevo_pokemon.
+    Variable global modificada: pokemons_capturados.
+    &quot;&quot;&quot;
+    global pokemons_capturados  # Declaramos uso de variable global
+
+    print(&quot;\n  ══ CAPTURAR POKÉMON ══&quot;)
+    print(&quot;\n  ¿Cómo quieres capturar tu Pokémon?&quot;)
+    print(&quot;    A. Elegir un Pokémon predefinido&quot;)
+    print(&quot;    B. Crear un Pokémon personalizado&quot;)
+
+    modo = input(&quot;\n  Opción (A/B): &quot;).strip().upper()
+
+    if modo == &quot;A&quot;:
+        # ── Pokémon predefinido ────────────────────────────────────────────
+        print(&quot;\n  Pokémon disponibles:&quot;)
+        for clave, datos in POKEMONS_PREDEFINIDOS.items():
+            print(f&quot;    {clave}. {datos[0]:10} | Tipo: {datos[1]:10} | &quot;
+                  f&quot;ATK:{datos[2]} DEF:{datos[3]} HP:{datos[4]}&quot;)
+
+        eleccion = input(&quot;\n  Elige un número (1-8): &quot;).strip()
+        if eleccion not in POKEMONS_PREDEFINIDOS:
+            print(&quot;  ⚠️  Opción inválida.&quot;)
+            return
+
+        datos = POKEMONS_PREDEFINIDOS[eleccion]
+        # Variables locales con los datos del Pokémon predefinido
+        nombre, tipo, ataque, defensa, salud = datos
+
+    elif modo == &quot;B&quot;:
+        # ── Pokémon personalizado ──────────────────────────────────────────
+        nombre  = input(&quot;\n  Nombre del Pokémon : &quot;).strip()
+        if not nombre:
+            print(&quot;  ⚠️  El nombre no puede estar vacío.&quot;)
+            return
+
+        print(f&quot;\n  Tipos disponibles: {&#x27;, &#x27;.join(TIPOS_DISPONIBLES)}&quot;)
+        tipo    = input(&quot;  Tipo              : &quot;).strip().capitalize()
+
+        print(&quot;\n  Estadísticas (valores entre 10 y 200):&quot;)
+        ataque  = pedir_entero(&quot;Ataque &quot;, 10, 200)
+        defensa = pedir_entero(&quot;Defensa&quot;, 10, 200)
+        salud   = pedir_entero(&quot;Salud  &quot;, 10, 200)
+    else:
+        print(&quot;  ⚠️  Opción inválida.&quot;)
+        return
+
+    # ── Crear la instancia (se pasan parámetros por valor) ────────────────
+    nuevo_pokemon = Pokemon(nombre, tipo, ataque, defensa, salud)
+
+    # ── Agregar a la lista global (paso por referencia del objeto) ────────
+    pokemons_capturados.append(nuevo_pokemon)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 2: ENTRENAR UN POKÉMON
+# ══════════════════════════════════════════════════════════════════════════════
+
+def entrenar_pokemon() -&gt; None:
+    &quot;&quot;&quot;
+    Permite elegir cómo entrenar un Pokémon seleccionado,
+    demostrando la sobrecarga de métodos con *args.
+    &quot;&quot;&quot;
+    print(&quot;\n  ══ ENTRENAR POKÉMON ══&quot;)
+    pokemon = seleccionar_pokemon(&quot;¿Qué Pokémon quieres entrenar?&quot;)
+    if pokemon is None:
+        return
+
+    print(f&quot;\n  Entrenando a {pokemon.nombre}...&quot;)
+    print(&quot;  ¿Cómo quieres entrenar?&quot;)
+    print(&quot;    1. Entrenamiento automático (sin argumentos)&quot;)
+    print(&quot;    2. Mejorar sólo Ataque (1 argumento)&quot;)
+    print(&quot;    3. Mejorar Ataque y Defensa (2 argumentos)&quot;)
+    print(&quot;    4. Mejorar Ataque, Defensa y Salud (3 argumentos)&quot;)
+
+    modo = pedir_entero(&quot;Modo de entrenamiento&quot;, 1, 4)
+
+    # ── Demostramos sobrecarga de métodos según la elección ────────────────
+    if modo == 1:
+        pokemon.entrenar()                  # Sin argumentos
+    elif modo == 2:
+        val_atk = pedir_entero(&quot;Puntos de Ataque a ganar&quot;, 1, 100)
+        pokemon.entrenar(val_atk)           # 1 argumento
+    elif modo == 3:
+        val_atk = pedir_entero(&quot;Puntos de Ataque a ganar &quot;, 1, 100)
+        val_def = pedir_entero(&quot;Puntos de Defensa a ganar&quot;, 1, 100)
+        pokemon.entrenar(val_atk, val_def)  # 2 argumentos
+    else:
+        val_atk = pedir_entero(&quot;Puntos de Ataque a ganar &quot;, 1, 100)
+        val_def = pedir_entero(&quot;Puntos de Defensa a ganar&quot;, 1, 100)
+        val_sal = pedir_entero(&quot;Puntos de Salud a ganar  &quot;, 1, 200)
+        pokemon.entrenar(val_atk, val_def, val_sal)  # 3 argumentos
+
+    # Mostrar poder total después del entrenamiento
+    poder = pokemon.poder_total()  # variable local
+    print(f&quot;\n  ⭐ Poder total de {pokemon.nombre}: {poder} pts&quot;)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 3: VER INFORMACIÓN
+# ══════════════════════════════════════════════════════════════════════════════
+
+def ver_informacion() -&gt; None:
+    &quot;&quot;&quot;
+    Muestra la información de todos los Pokémon o de uno seleccionado.
+    Accede a la variable global pokemons_capturados.
+    &quot;&quot;&quot;
+    global pokemons_capturados
+
+    if not pokemons_capturados:
+        print(&quot;\n  ⚠️  No tienes Pokémon capturados todavía.&quot;)
+        return
+
+    print(&quot;\n  ══ INFORMACIÓN DE POKÉMON ══&quot;)
+    print(&quot;    1. Ver todos&quot;)
+    print(&quot;    2. Ver uno específico&quot;)
+    opcion = pedir_entero(&quot;Opción&quot;, 1, 2)
+
+    if opcion == 1:
+        for poke in pokemons_capturados:  # Paso por referencia (iteración)
+            poke.mostrar_info()
+            print(f&quot;  ⭐ Poder total: {poke.poder_total()} pts&quot;)
+    else:
+        pokemon = seleccionar_pokemon(&quot;¿De qué Pokémon quieres ver información?&quot;)
+        if pokemon:
+            pokemon.mostrar_info()
+            print(f&quot;  ⭐ Poder total: {pokemon.poder_total()} pts&quot;)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 4: TOTAL DE POKÉMON (método de clase)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def mostrar_total() -&gt; None:
+    &quot;&quot;&quot;Llama al método de clase total_pokemons().&quot;&quot;&quot;
+    Pokemon.total_pokemons()  # Llamada a método de clase (sin instancia)
+    print(f&quot;  📋 En tu equipo: {len(pokemons_capturados)} Pokémon&quot;)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 5: SIMULAR BATALLA
+# ══════════════════════════════════════════════════════════════════════════════
+
+def simular_batalla() -&gt; None:
+    &quot;&quot;&quot;
+    Simula una batalla entre dos Pokémon del equipo.
+    Demuestra el paso de objetos por referencia en atacar().
+    &quot;&quot;&quot;
+    global pokemons_capturados
+
+    if len(pokemons_capturados) &lt; 2:
+        print(&quot;\n  ⚠️  Necesitas al menos 2 Pokémon para batallar.&quot;)
+        return
+
+    print(&quot;\n  ══ SIMULAR BATALLA ══&quot;)
+    print(&quot;\n  Selecciona el Pokémon atacante:&quot;)
+    atacante = seleccionar_pokemon(&quot;Atacante&quot;)
+    if atacante is None:
+        return
+
+    print(&quot;\n  Selecciona el Pokémon defensor:&quot;)
+    defensor = seleccionar_pokemon(&quot;Defensor&quot;)
+    if defensor is None:
+        return
+
+    if atacante is defensor:
+        print(&quot;  ⚠️  Un Pokémon no puede atacarse a sí mismo.&quot;)
+        return
+
+    print(f&quot;\n  🥊 ¡{atacante.nombre} VS {defensor.nombre}!&quot;)
+    print(&quot;  &quot; + &quot;─&quot; * 40)
+
+    # ── El objeto defensor se pasa por referencia; su salud es modificada ──
+    atacante.atacar(defensor)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# OPCIÓN 6: LIBERAR UN POKÉMON (destructor)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def liberar_pokemon() -&gt; None:
+    &quot;&quot;&quot;
+    Elimina un Pokémon de la lista global.
+    Al eliminar la última referencia, Python llama automáticamente a __del__.
+
+    Variable global modificada: pokemons_capturados.
+    Variable local: indice, confirmacion.
+    &quot;&quot;&quot;
+    global pokemons_capturados
+
+    print(&quot;\n  ══ LIBERAR POKÉMON ══&quot;)
+
+    if not pokemons_capturados:
+        print(&quot;\n  ⚠️  No tienes Pokémon para liberar.&quot;)
+        return
+
+    print(&quot;\n  Pokémon disponibles:&quot;)
+    for indice, poke in enumerate(pokemons_capturados, start=1):  # indice: var local
+        print(f&quot;    {indice}. {poke}&quot;)
+
+    num = pedir_entero(&quot;Número del Pokémon a liberar&quot;, 1, len(pokemons_capturados))
+    pokemon = pokemons_capturados[num - 1]
+
+    confirmacion = input(  # variable local
+        f&quot;\n  ¿Seguro que quieres liberar a {pokemon.nombre}? (s/n): &quot;
+    ).strip().lower()
+
+    if confirmacion == &quot;s&quot;:
+        # Remover de la lista y eliminar la referencia → activa __del__
+        pokemons_capturados.pop(num - 1)
+        del pokemon  # Elimina la referencia → llama a __del__
+    else:
+        print(f&quot;\n  {pokemon.nombre} se queda contigo. 🤝&quot;)
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FUNCIÓN PRINCIPAL
+# ══════════════════════════════════════════════════════════════════════════════
+
+def main() -&gt; None:
+    &quot;&quot;&quot;
+    Función principal que controla el ciclo del menú.
+    Usa la variable global pokemons_capturados a través de las funciones.
+    &quot;&quot;&quot;
+    # ── Tabla de despacho: mapea opciones a funciones ─────────────────────
+    acciones = {
+        &quot;1&quot;: capturar_pokemon,
+        &quot;2&quot;: entrenar_pokemon,
+        &quot;3&quot;: ver_informacion,
+        &quot;4&quot;: mostrar_total,
+        &quot;5&quot;: simular_batalla,
+        &quot;6&quot;: liberar_pokemon,
+    }
+
+    mostrar_banner()
+
+    # ── Ciclo principal del menú ───────────────────────────────────────────
+    while True:
+        mostrar_menu_principal()
+        opcion = input(&quot;\n  Elige una opción (1-7): &quot;).strip()  # variable local
+
+        if opcion == &quot;7&quot;:
+            print(&quot;\n  👋 ¡Hasta pronto, Entrenador! ¡Atrapa a todos! 🎯\n&quot;)
+            break
+        elif opcion in acciones:
+            acciones[opcion]()  # Llamada a la función correspondiente
+        else:
+            print(&quot;  ⚠️  Opción no válida. Elige entre 1 y 7.&quot;)
+
+        input(&quot;\n  Presiona ENTER para continuar...&quot;)
+        limpiar_pantalla()
+        mostrar_banner()
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# PUNTO DE ENTRADA
+# ══════════════════════════════════════════════════════════════════════════════
+
+if __name__ == &quot;__main__&quot;:
+    main()
+</pre>
+
 </body>
 </html>
